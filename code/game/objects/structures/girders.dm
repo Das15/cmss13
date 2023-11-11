@@ -62,7 +62,7 @@
 				. += SPAN_NOTICE("Plasteel attached. [SPAN_HELPFUL("Weld")] to finish.")
 			return
 		if(STATE_DISPLACED)
-			. += SPAN_NOTICE("It looks dislodged. [SPAN_HELPFUL("Crowbar")] to secure it.")
+			. += SPAN_NOTICE("It looks dislodged. [SPAN_HELPFUL("Crowbar")] to secure or [SPAN_HELPFUL("wrench")] to dismantle.")
 
 /obj/structure/girder/update_icon()
 	. = ..()
@@ -191,6 +191,9 @@
 				step_state = STATE_STANDARD
 				update_icon()
 				return TRUE
+			else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH))
+				disassemble(user)
+				return TRUE
 	return FALSE
 
 /obj/structure/girder/proc/do_dismantle(obj/item/W, mob/user)
@@ -219,15 +222,18 @@
 		return TRUE
 
 	else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH) && step_state == STATE_WIRECUTTER)
-		to_chat(user, SPAN_NOTICE("You start wrenching it apart."))
-		playsound(loc, 'sound/items/Ratchet.ogg', 25, 1)
-		if(!do_after(user, 40 * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-			return TRUE
-		to_chat(user, SPAN_NOTICE("You wrenched it apart!"))
-		deconstruct(TRUE)
-
+		disassemble(user)
 		return TRUE
 	return FALSE
+
+/// Handles the deconstruction logic of the girder
+/obj/structure/girder/proc/disassemble(mob/user)
+	to_chat(user, SPAN_NOTICE("You start wrenching it apart."))
+	playsound(loc, 'sound/items/Ratchet.ogg', 25, 1)
+	if(!do_after(user, 40 * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+		return
+	to_chat(user, SPAN_NOTICE("You wrenched it apart!"))
+	deconstruct(TRUE)
 
 /obj/structure/girder/deconstruct(disassembled = TRUE)
 	if(disassembled)
