@@ -124,6 +124,7 @@
 	desc = "Cats really don't like these things."
 	icon = 'icons/turf/almayer.dmi'
 	icon_state = "plating_catwalk"
+	tool_flags = REMOVE_CROWBAR
 	var/base_state = "plating" //Post mapping
 	var/covered = TRUE
 
@@ -137,6 +138,7 @@
 	. = ..()
 	if(covered)
 		overlays += image(icon, src, "catwalk", CATWALK_LAYER)
+	tool_flags = covered ? REMOVE_CROWBAR : null
 
 /turf/open/floor/plating/plating_catwalk/attackby(obj/item/W as obj, mob/user as mob)
 	if (HAS_TRAIT(W, TRAIT_TOOL_CROWBAR))
