@@ -92,6 +92,8 @@
 			return
 		if(isrobot(user) || iszombie(user))
 			return
+		if (iswelder(W))
+			return ..()
 		user.drop_inv_item_to_loc(W, loc)
 	else if(istype(W, /obj/item/packageWrap) || istype(W, /obj/item/explosive/plastic))
 		return
