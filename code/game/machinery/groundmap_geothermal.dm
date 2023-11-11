@@ -2,7 +2,7 @@
 	name = "\improper G-11 geothermal generator"
 	icon = 'icons/obj/structures/machinery/geothermal.dmi'
 	icon_state = "weld"
-	desc = "A thermoelectric generator sitting atop a plasma-filled borehole. This one is heavily damaged. Use a blowtorch, wirecutters, then wrench to repair it."
+	desc = "A thermoelectric generator sitting atop a plasma-filled borehole. This one is heavily damaged."
 	anchored = TRUE
 	density = TRUE
 	directwired = 0  //Requires a cable directly underneath
@@ -34,20 +34,22 @@
 		icon_state = "off"
 		desc = "A thermoelectric generator sitting atop a borehole dug deep in the planet's surface. It generates energy by boiling the plasma steam that rises from the well.\nIt is old technology and has a large failure rate, and must be repaired frequently.\nIt is currently turned off and silent."
 	else
+		desc = "A thermoelectric generator sitting atop a plasma-filled borehole. "
 		if(buildstate == 1)
 			icon_state = "weld"
-			desc = "A thermoelectric generator sitting atop a plasma-filled borehole. This one is heavily damaged. Use a blowtorch, wirecutters, then wrench to repair it."
+			desc += "This one is heavily damaged. Use a [SPAN_HELPFUL("blowtorch")], [SPAN_HELPFUL("wirecutters")], then [SPAN_HELPFUL("wrench")] to repair it."
 		else if(buildstate == 2)
 			icon_state = "wire"
-			desc = "A thermoelectric generator sitting atop a plasma-filled borehole. This one is damaged. Use a wirecutters, then wrench to repair it."
+			desc += "This one is damaged. Use a [SPAN_HELPFUL("wirecutters")], then [SPAN_HELPFUL("wrench")] to repair it."
 		else
 			icon_state = "wrench"
-			desc = "A thermoelectric generator sitting atop a plasma-filled borehole. This one is lightly damaged. Use a wrench to repair it."
+			desc += "This one is lightly damaged. Use a [SPAN_HELPFUL("wrench")] to repair it."
 
 /obj/structure/machinery/power/geothermal/Initialize(mapload, ...)
 	. = ..()
 	if(!connect_to_network()) //Should start with a cable piece underneath, if it doesn't, something's messed up in mapping
 		powernet_connection_failed = 1
+	desc += " Use a [SPAN_HELPFUL("blowtorch")], [SPAN_HELPFUL("wirecutters")], then [SPAN_HELPFUL("wrench")] to repair it."
 
 /obj/structure/machinery/power/geothermal/power_change()
 	return
@@ -110,13 +112,13 @@
 		return 0
 
 	if(buildstate == 1)
-		to_chat(usr, SPAN_INFO("Use a blowtorch, then wirecutters, then wrench to repair it."))
+		to_chat(usr, SPAN_INFO("Use a [SPAN_HELPFUL("blowtorch")], then [SPAN_HELPFUL("wirecutters")], then [SPAN_HELPFUL("wrench")] to repair it."))
 		return 0
 	else if (buildstate == 2)
-		to_chat(usr, SPAN_INFO("Use a wirecutters, then wrench to repair it."))
+		to_chat(usr, SPAN_INFO("Use a [SPAN_HELPFUL("wirecutters")], then [SPAN_HELPFUL("wrench")] to repair it."))
 		return 0
 	else if (buildstate == 3)
-		to_chat(usr, SPAN_INFO("Use a wrench to repair it."))
+		to_chat(usr, SPAN_INFO("Use a [SPAN_HELPFUL("wrench")] to repair it."))
 		return 0
 	if(is_on)
 		visible_message("[icon2html(src, viewers(src))] [SPAN_WARNING("<b>[src]</b> beeps softly and the humming stops as [usr] shuts off the turbines.")]")
@@ -453,11 +455,11 @@
 			. += SPAN_WARNING("It is damaged.")
 			if(skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
 				switch(repair_state)
-					if(FLOODLIGHT_REPAIR_UNSCREW) . += SPAN_INFO("You must first unscrew its maintenance hatch.")
-					if(FLOODLIGHT_REPAIR_CROWBAR) . += SPAN_INFO("You must crowbar its maintenance hatch open.")
-					if(FLOODLIGHT_REPAIR_WELD) . += SPAN_INFO("You must weld the damage to it.")
-					if(FLOODLIGHT_REPAIR_CABLE) . += SPAN_INFO("You must replace its damaged cables.")
-					if(FLOODLIGHT_REPAIR_SCREW) . += SPAN_INFO("You must screw its maintenance hatch closed.")
+					if(FLOODLIGHT_REPAIR_UNSCREW) . += SPAN_INFO("You must first [SPAN_HELPFUL("unscrew")] its maintenance hatch.")
+					if(FLOODLIGHT_REPAIR_CROWBAR) . += SPAN_INFO("You must [SPAN_HELPFUL("crowbar")] its maintenance hatch open.")
+					if(FLOODLIGHT_REPAIR_WELD) . += SPAN_INFO("You must [SPAN_HELPFUL("weld")] the damage to it.")
+					if(FLOODLIGHT_REPAIR_CABLE) . += SPAN_INFO("You must replace its damaged [SPAN_HELPFUL("cables")].")
+					if(FLOODLIGHT_REPAIR_SCREW) . += SPAN_INFO("You must [SPAN_HELPFUL("screw")] its maintenance hatch closed.")
 		else if(!is_lit)
 			. += SPAN_INFO("It doesn't seem powered.")
 

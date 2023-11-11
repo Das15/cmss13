@@ -172,15 +172,15 @@
 
 	switch(d_state)
 		if(WALL_STATE_WELD)
-			. += SPAN_INFO("The outer plating is intact. A blowtorch should slice it open.")
+			. += SPAN_INFO("The outer plating is intact. A [SPAN_HELPFUL("blowtorch")] should slice it open.")
 		if(WALL_STATE_SCREW)
-			. += SPAN_INFO("The outer plating has been sliced open. A screwdriver should remove the support lines.")
+			. += SPAN_INFO("The outer plating has been sliced open. A [SPAN_HELPFUL("screwdriver")] should remove the support lines.")
 		if(WALL_STATE_WIRECUTTER)
-			. += SPAN_INFO("The support lines have been removed. Wirecutters will take care of the hydraulic lines.")
+			. += SPAN_INFO("The support lines have been removed. [SPAN_HELPFUL("Wirecutters")] will take care of the hydraulic lines.")
 		if(WALL_STATE_WRENCH)
-			. += SPAN_INFO("The hydralic lines have been cut. A wrench will remove the anchor bolts.")
+			. += SPAN_INFO("The hydralic lines have been cut. A [SPAN_HELPFUL("wrench")] will remove the anchor bolts.")
 		if(WALL_STATE_CROWBAR)
-			. += SPAN_INFO("The anchor bolts have been removed. A crowbar will pry apart the connecting rods.")
+			. += SPAN_INFO("The anchor bolts have been removed. A [SPAN_HELPFUL("crowbar")] will pry apart the connecting rods.")
 
 //Damage
 /turf/closed/wall/proc/take_damage(dam, mob/M)
