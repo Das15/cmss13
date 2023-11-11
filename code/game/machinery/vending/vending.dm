@@ -142,6 +142,10 @@ GLOBAL_LIST_EMPTY_TYPED(total_vending_machines, /obj/structure/machinery/vending
 		if(EXPLOSION_THRESHOLD_MEDIUM to INFINITY)
 			deconstruct(FALSE)
 
+/obj/structure/machinery/vending/get_examine_text(mob/user)
+	. = ..()
+	. += "It is [anchored ? "anchored" : "unanchored"] to the floor."
+
 /obj/structure/machinery/vending/proc/select_gamemode_equipment(gamemode)
 	return
 
