@@ -88,7 +88,7 @@
 /obj/item/frame/table/reinforced/deconstruct(disassembled = TRUE)
 	if(disassembled)
 		new /obj/item/stack/sheet/metal(get_turf(src))
-		new /obj/item/stack/rods(get_turf(src))
+		new /obj/item/stack/rods(get_turf(src), 4)
 	return ..()
 
 /*
