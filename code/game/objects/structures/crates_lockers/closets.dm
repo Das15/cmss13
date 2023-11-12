@@ -193,9 +193,7 @@
 	open()
 
 /// Returns TRUE on deconstruction, FALSE if a check failed
-/obj/structure/closet/proc/handle_welder(obj/item/item_welder, mob/living/user)
-	var/obj/item/tool/weldingtool/welding_tool = item_welder
-
+/obj/structure/closet/proc/handle_welder(obj/item/tool/weldingtool/welding_tool, mob/living/user)
 	if(opened)
 		if(!welding_tool.isOn())
 			return FALSE
@@ -206,8 +204,8 @@
 		if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 			return FALSE
 		new /obj/item/stack/sheet/metal(loc)
-		for(var/mob/M as anything in viewers(src))
-			M.show_message(SPAN_NOTICE("\The [src] has been cut apart by [user] with [welding_tool]."), SHOW_MESSAGE_VISIBLE, "You hear welding.", SHOW_MESSAGE_AUDIBLE)
+		for(var/mob/viewer as anything in viewers(src))
+			viewer.show_message(SPAN_NOTICE("\The [src] has been cut apart by [user] with [welding_tool]."), SHOW_MESSAGE_VISIBLE, "You hear welding.", SHOW_MESSAGE_AUDIBLE)
 		return TRUE
 	if(material != MATERIAL_METAL && material != MATERIAL_PLASTEEL)
 		to_chat(user, SPAN_WARNING("You cannot weld [material]!"))
@@ -237,51 +235,52 @@
 			A.forceMove(src.loc)
 		qdel(src)
 
-/obj/structure/closet/attackby(obj/item/item_welder, mob/living/user)
-	if(src.opened)
-		if(istype(item_welder, /obj/item/grab))
-			if(isxeno(user)) return
-			var/obj/item/grab/G = item_welder
-			if(G.grabbed_thing)
-				src.MouseDrop_T(G.grabbed_thing, user)   //act like they were dragged onto the closet
+/obj/structure/closet/attackby(obj/item/attacking_item, mob/living/user)
+	if(opened)
+		if(istype(attacking_item, /obj/item/grab))
+			if(isxeno(user))
+				return
+			var/obj/item/grab/grabbing = attacking_item
+			if(grabbing.grabbed_thing)
+				MouseDrop_T(grabbing.grabbed_thing, user)   //act like they were dragged onto the closet
 			return
-		if(item_welder.flags_item & ITEM_ABSTRACT)
+		if(attacking_item.flags_item & ITEM_ABSTRACT)
 			return 0
 		if(material == MATERIAL_METAL)
-			if(iswelder(item_welder))
-				if(!HAS_TRAIT(item_welder, TRAIT_TOOL_BLOWTORCH))
+			if(iswelder(attacking_item))
+				if(!HAS_TRAIT(attacking_item, TRAIT_TOOL_BLOWTORCH))
 					to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
 					return
-				if(handle_welder(item_welder, user))
+				if(handle_welder(attacking_item, user))
 					qdel(src)
 					return
 		if(material == MATERIAL_WOOD)
-			if(HAS_TRAIT(item_welder, TRAIT_TOOL_CROWBAR))
+			if(HAS_TRAIT(attacking_item, TRAIT_TOOL_CROWBAR))
 				playsound(src, 'sound/effects/woodhit.ogg')
 				if(!do_after(user, 10 * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 					return
-				new /obj/item/stack/sheet/wood(src.loc)
-				user.visible_message(SPAN_NOTICE("[user] has pried apart [src] with [item_welder]."), "You pry apart [src].")
+				new /obj/item/stack/sheet/wood(loc)
+				user.visible_message(SPAN_NOTICE("[user] has pried apart [src] with [attacking_item]."), "You pry apart [src].")
 				qdel(src)
 				return
 		if(isrobot(user))
 			return
-		user.drop_inv_item_to_loc(item_welder,loc)
+		user.drop_inv_item_to_loc(attacking_item,loc)
 
-	else if(istype(item_welder, /obj/item/packageWrap) || istype(item_welder, /obj/item/explosive/plastic))
+	else if(istype(attacking_item, /obj/item/packageWrap) || istype(attacking_item, /obj/item/explosive/plastic))
 		return
-	else if(iswelder(item_welder))
-		if(!HAS_TRAIT(item_welder, TRAIT_TOOL_BLOWTORCH))
+	else if(iswelder(attacking_item))
+		if(!HAS_TRAIT(attacking_item, TRAIT_TOOL_BLOWTORCH))
 			to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
 			return
-		if(handle_welder(item_welder, user))
+		if(handle_welder(attacking_item, user))
 			update_icon()
 	else
 		if(isxeno(user))
 			var/mob/living/carbon/xenomorph/opener = user
-			src.attack_alien(opener)
+			attack_alien(opener)
 			return FALSE
-		src.attack_hand(user)
+		attack_hand(user)
 	return TRUE
 
 /obj/structure/closet/MouseDrop_T(atom/movable/O, mob/user)

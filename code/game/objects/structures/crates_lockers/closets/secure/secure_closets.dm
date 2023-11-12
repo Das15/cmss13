@@ -80,32 +80,32 @@
 	else
 		to_chat(user, SPAN_NOTICE("Access Denied"))
 
-/obj/structure/closet/secure_closet/attackby(obj/item/W, mob/living/user)
-	if(src.opened)
-		if(istype(W, /obj/item/grab))
-			var/obj/item/grab/G = W
-			if(G.grabbed_thing)
-				if(src.large)
-					src.MouseDrop_T(G.grabbed_thing, user) //act like they were dragged onto the closet
+/obj/structure/closet/secure_closet/attackby(obj/item/attacking_item, mob/living/user)
+	if(opened)
+		if(istype(attacking_item, /obj/item/grab))
+			var/obj/item/grab/grabbing = attacking_item
+			if(grabbing.grabbed_thing)
+				if(large)
+					MouseDrop_T(grabbing.grabbed_thing, user) //act like they were dragged onto the closet
 				else
-					to_chat(user, SPAN_NOTICE("The locker is too small to stuff [W:affecting] into!"))
+					to_chat(user, SPAN_NOTICE("The locker is too small to stuff [attacking_item:affecting] into!"))
 			return
 		if(isrobot(user) || iszombie(user))
 			return
-		if (iswelder(W))
+		if (iswelder(attacking_item))
 			return ..()
-		user.drop_inv_item_to_loc(W, loc)
-	else if(istype(W, /obj/item/packageWrap) || istype(W, /obj/item/explosive/plastic))
+		user.drop_inv_item_to_loc(attacking_item, loc)
+	else if(istype(attacking_item, /obj/item/packageWrap) || istype(attacking_item, /obj/item/explosive/plastic))
 		return
-	else if(iswelder(W))
-		if(!HAS_TRAIT(W, TRAIT_TOOL_BLOWTORCH))
+	else if(iswelder(attacking_item))
+		if(!HAS_TRAIT(attacking_item, TRAIT_TOOL_BLOWTORCH))
 			to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
 			return
-		return ..(W,user)
+		return ..()
 	else
 		if(isxeno(user))
 			var/mob/living/carbon/xenomorph/opener = user
-			src.attack_alien(opener)
+			attack_alien(opener)
 			return
 		togglelock(user)
 
