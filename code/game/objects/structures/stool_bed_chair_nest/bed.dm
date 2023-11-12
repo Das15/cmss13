@@ -28,6 +28,11 @@
 	var/buckling_sound = 'sound/effects/buckle.ogg'
 	surgery_duration_multiplier = SURGERY_SURFACE_MULT_UNSUITED
 
+/obj/structure/bed/get_examine_text(mob/user)
+	. = ..()
+	if(buildstacktype)
+		. += SPAN_NOTICE("It looks like it can be disassembled with a [SPAN_HELPFUL("wrench")].")
+
 /obj/structure/bed/initialize_pass_flags(datum/pass_flags_container/PF)
 	..()
 	if (PF)

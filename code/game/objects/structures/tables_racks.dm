@@ -54,6 +54,10 @@
 		PF.flags_can_pass_all = PASS_OVER|PASS_AROUND|PASS_TYPE_CRAWLER|PASS_CRUSHER_CHARGE
 	flags_can_pass_all_temp = PASS_UNDER
 
+/obj/structure/surface/table/get_examine_text(mob/user)
+	. = ..()
+	. += SPAN_NOTICE("You can disassemble it with a [SPAN_HELPFUL("wrench")].")
+
 /obj/structure/surface/table/deconstruct(disassembled = TRUE)
 	if(disassembled)
 		if(parts)
@@ -548,25 +552,30 @@
 			to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
 			return
 		var/obj/item/tool/weldingtool/WT = W
-		if(WT.remove_fuel(0, user))
-			if(status == RTABLE_NORMAL)
-				user.visible_message(SPAN_NOTICE("[user] starts weakening [src]."),
-				SPAN_NOTICE("You start weakening [src]"))
-				playsound(src.loc, 'sound/items/Welder.ogg', 25, 1)
-				if (do_after(user, 50 * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-					if(!src || !WT.isOn()) return
-					user.visible_message(SPAN_NOTICE("[user] weakens [src]."),
-					SPAN_NOTICE("You weaken [src]"))
-					src.status = RTABLE_WEAKENED
-			else
-				user.visible_message(SPAN_NOTICE("[user] starts welding [src] back together."),
-				SPAN_NOTICE("You start welding [src] back together."))
-				playsound(src.loc, 'sound/items/Welder.ogg', 25, 1)
-				if(do_after(user, 50 * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-					if(!src || !WT.isOn()) return
-					user.visible_message(SPAN_NOTICE("[user] welds [src] back together."),
-					SPAN_NOTICE("You weld [src] back together."))
-					status = RTABLE_NORMAL
+		if(!WT.remove_fuel(0, user)) // Somehow it also checks if welder is turned on...
+			return
+		if(status == RTABLE_NORMAL)
+			user.visible_message(SPAN_NOTICE("[user] starts weakening [src]."),
+			SPAN_NOTICE("You start weakening [src]"))
+			playsound(src.loc, 'sound/items/Welder.ogg', 25, 1)
+			if (!do_after(user, 5 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+				return
+			if(!src || !WT.isOn()) // I have no idea if this check is even necessary
+				return
+			user.visible_message(SPAN_NOTICE("[user] weakens [src]."),
+			SPAN_NOTICE("You weaken [src]"))
+			src.status = RTABLE_WEAKENED
+		else
+			user.visible_message(SPAN_NOTICE("[user] starts welding [src] back together."),
+			SPAN_NOTICE("You start welding [src] back together."))
+			playsound(src.loc, 'sound/items/Welder.ogg', 25, 1)
+			if(!do_after(user, 5 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+				return
+			if(!src || !WT.isOn())
+				return
+			user.visible_message(SPAN_NOTICE("[user] welds [src] back together."),
+			SPAN_NOTICE("You weld [src] back together."))
+			status = RTABLE_NORMAL
 			return
 		return
 
@@ -574,6 +583,16 @@
 		return
 
 	..()
+
+/obj/structure/surface/table/reinforced/get_examine_text(mob/user)
+	. = ..()
+	var/help_message
+	if(status == RTABLE_NORMAL)
+		help_message += "It looks like it can be weakened with a [SPAN_HELPFUL("blowtorch")]."
+	else if(status == RTABLE_WEAKENED)
+		help_message += "It looks like it can be strenghtened with a [SPAN_HELPFUL("blowtorch")]. "
+		help_message += "You can disassemble it with a [SPAN_HELPFUL("wrench")]."
+	. += SPAN_NOTICE(help_message)
 
 /obj/structure/surface/table/reinforced/prison
 	desc = "A square metal surface resting on four legs. This one has side panels, making it useful as a desk, but impossible to flip."
@@ -647,6 +666,10 @@
 	..()
 	if (PF)
 		PF.flags_can_pass_all = PASS_OVER|PASS_AROUND|PASS_UNDER|PASS_THROUGH|PASS_CRUSHER_CHARGE
+
+/obj/structure/surface/rack/get_examine_text(mob/user)
+	. = ..()
+	. += SPAN_NOTICE("It looks like [SPAN_HELPFUL("wrench")] with [SPAN_HELPFUL("non-helpful stance")] will disassemble it.")
 
 /obj/structure/surface/rack/BlockedPassDirs(atom/movable/mover, target_dir)
 	for(var/obj/structure/S in get_turf(mover))

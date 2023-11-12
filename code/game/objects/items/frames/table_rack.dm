@@ -69,6 +69,10 @@
 	user.drop_held_item()
 	qdel(src)
 
+/obj/item/frame/table/get_examine_text(mob/user)
+	. = ..()
+	. += SPAN_NOTICE("You can disassemble it with a [SPAN_HELPFUL("wrench")].")
+
 /*
  * Reinforced Table Parts
  */
@@ -180,6 +184,10 @@
 	icon_state = "rack_parts"
 	flags_atom = FPRINT|CONDUCT
 	matter = list("metal" = 3750) //A big storage shelf, takes five sheets to build
+
+/obj/item/frame/rack/get_examine_text(mob/user)
+	. = ..()
+	. += SPAN_NOTICE("You can disassemble it with a [SPAN_HELPFUL("wrench")].")
 
 /obj/item/frame/rack/attackby(obj/item/W, mob/user)
 	..()

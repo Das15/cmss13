@@ -40,7 +40,7 @@
 		if(first) // nothing needs to be added, then
 			requirements_left += "nothing. Use a screwdriver to complete"
 		requirements_left += "."
-	desc = initial(desc) + SPAN_WARNING(requirements_left)
+	desc = initial(desc) + SPAN_NOTICE(requirements_left)
 
 /obj/structure/machinery/constructable_frame/update_icon()
 	..()

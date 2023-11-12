@@ -9,6 +9,11 @@ to destroy them and players will be able to make replacements.
 	var/list/req_components = null
 	var/frame_desc = null
 
+/obj/item/circuitboard/machine/get_examine_text(mob/user)
+	. = ..()
+	if(frame_desc)
+		. += SPAN_NOTICE(frame_desc)
+
 /obj/item/circuitboard/machine/destructive_analyzer
 	name = "Circuit board (Destructive Analyzer)"
 	build_path = /obj/structure/machinery/r_n_d/destructive_analyzer

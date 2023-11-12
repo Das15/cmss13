@@ -57,9 +57,9 @@
 /obj/structure/closet/get_examine_text(mob/user)
 	. = ..()
 	if(opened)
-		. += SPAN_NOTICE("You can [SPAN_HELPFUL("weld")] to disassemble.")
+		. += SPAN_NOTICE("You can [SPAN_HELPFUL("weld")] it to disassemble.")
 	if(welded)
-		. += SPAN_NOTICE("It is welded shut.")
+		. += "It is welded shut."
 
 /obj/structure/closet/proc/select_gamemode_equipment(gamemode)
 	return

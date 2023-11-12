@@ -144,7 +144,7 @@ GLOBAL_LIST_EMPTY_TYPED(total_vending_machines, /obj/structure/machinery/vending
 
 /obj/structure/machinery/vending/get_examine_text(mob/user)
 	. = ..()
-	. += "It is [anchored ? "anchored" : "unanchored"] to the floor."
+	. += "It is currently [anchored ? "anchored to the floor" : "unanchored"]."
 
 /obj/structure/machinery/vending/proc/select_gamemode_equipment(gamemode)
 	return
