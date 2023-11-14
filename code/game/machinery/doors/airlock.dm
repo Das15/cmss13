@@ -98,8 +98,6 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 /obj/structure/machinery/door/airlock/bumpopen(mob/living/simple_animal/user as mob)
 	..(user)
 
-/// DAMAGE CODE
-
 /obj/structure/machinery/door/airlock/get_examine_text(mob/user)
 	. = ..()
 	var/dam = damage / damage_cap
@@ -111,6 +109,16 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		. += SPAN_WARNING("It looks slightly damaged.")
 	if(masterkey_resist)
 		. += SPAN_INFO("It has been reinforced against breaching attempts.")
+	var/engi_examine_message = ""
+	if(!open && !not_weldable)
+		engi_examine_message += "You can [SPAN_HELPFUL("weld")] the doors [welded ? "open" : "shut"]."
+	if(!no_panel)
+		engi_examine_message += "You can [SPAN_HELPFUL("screwdrive")] the maintenance panel [panel_open ? "open" : "shut"]."
+	if(welded && panel_open)
+		engi_examine_message += "You can disassemble with a [SPAN_HELPFUL("crowbar")]."
+	. += SPAN_NOTICE(engi_examine_message)
+
+/// DAMAGE CODE
 
 /obj/structure/machinery/door/airlock/proc/take_damage(dam, mob/M)
 	if(!dam || unacidable)
