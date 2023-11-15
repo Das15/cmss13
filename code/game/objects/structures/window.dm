@@ -1,3 +1,7 @@
+#define STATE_STANDARD 0
+#define STATE_UNFASTENED 1
+#define STATE_FRAME_PRIED 2
+
 /obj/structure/window
 	name = "window"
 	desc = "A glass window. It looks thin and flimsy. A few knocks with anything should shatter it."
@@ -8,7 +12,7 @@
 	layer = WINDOW_LAYER
 	flags_atom = ON_BORDER|FPRINT
 	health = 15
-	var/state = 2
+	var/state = STATE_STANDARD
 	var/reinf = 0
 	var/basestate = "window"
 	var/shardtype = /obj/item/shard
@@ -250,24 +254,38 @@
 			healthcheck(1, 1, 1, M) //The person thrown into the window literally shattered it
 		return
 
-	if(W.flags_item & NOBLUDGEON) return
-
+	if(W.flags_item & NOBLUDGEON)
+		return
 	if(HAS_TRAIT(W, TRAIT_TOOL_SCREWDRIVER) && !not_deconstructable)
 		if(!anchored)
-			var/turf/open/T = loc
-			var/obj/structure/blocker/anti_cade/AC = locate(/obj/structure/blocker/anti_cade) in T // for M2C HMG, look at smartgun_mount.dm
-			if(!(istype(T) && T.allow_construction))
+			var/turf/open/checked_turf = loc
+			var/obj/structure/blocker/anti_cade/AC = locate(/obj/structure/blocker/anti_cade) in checked_turf // for M2C HMG, look at smartgun_mount.dm
+			if(!(istype(checked_turf) && checked_turf.allow_construction))
 				to_chat(user, SPAN_WARNING("\The [src] must be fastened on a proper surface!"))
 				return
 			if(AC)
 				to_chat(usr, SPAN_WARNING("\The [src] cannot be fastened here!"))  //might cause some friendly fire regarding other items like barbed wire, shouldn't be a problem?
 				return
+		if(!reinf || state == STATE_FRAME_PRIED)
+			anchored = !anchored
+			update_nearby_icons()
+			playsound(loc, "sound/items/Screwdriver.ogg", 25, 1)
+			to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] the window."))
+			return
+		if(static_frame && state == STATE_FRAME_PRIED)
+			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
+			deconstruct(TRUE)
+		if(state == STATE_STANDARD)
+			state = STATE_UNFASTENED
+			to_chat(user, SPAN_NOTICE("You have unfastened the window from the frame."))
+		else if(state == STATE_UNFASTENED)
+			state = STATE_STANDARD
+			to_chat(user, SPAN_NOTICE("You have fastened the window to the frame."))
+		else if(state == STATE_FRAME_PRIED)
+			anchored = !anchored
+			update_nearby_icons()
 
-		if(reinf && state >= 1)
-			state = 3 - state
-			playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
-			to_chat(user, (state == 1 ? SPAN_NOTICE("You have unfastened the window from the frame.") : SPAN_NOTICE("You have fastened the window to the frame.")))
-		else if(reinf && state == 0 && !static_frame)
+		else if(state == 0 && !static_frame)
 			anchored = !anchored
 			update_nearby_icons()
 			playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
@@ -277,9 +295,7 @@
 			update_nearby_icons()
 			playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
 			to_chat(user, (anchored ? SPAN_NOTICE("You have fastened the window to the floor.") : SPAN_NOTICE("You have unfastened the window.")))
-		else if(static_frame && state == 0)
-			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
-			deconstruct(TRUE)
+		playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
 	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && reinf && state <= 1 && !not_deconstructable)
 		state = 1 - state
 		playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
@@ -992,3 +1008,7 @@
 	icon_state = "paddedsec_rwindow0"
 	basestate = "paddedsec_rwindow"
 	window_frame = /obj/structure/window_frame/corsat/security
+
+#undef STATE_STANDARD
+#undef STATE_UNFASTENED
+#undef STATE_FRAME_PRIED
