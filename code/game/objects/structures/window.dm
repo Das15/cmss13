@@ -39,6 +39,8 @@
 	if(is_full_window())
 		LAZYADD(debris, shardtype)
 		update_nearby_icons()
+	if(!anchored)
+		state = STATE_FRAME_PRIED
 
 /obj/structure/window/Destroy(force)
 	density = FALSE
@@ -56,7 +58,7 @@
 		PF.flags_can_pass_all = PASS_HIGH_OVER_ONLY|PASS_GLASS
 
 /obj/structure/window/proc/set_constructed_window(start_dir)
-	state = 0
+	state = STATE_FRAME_PRIED
 	anchored = FALSE
 
 	if(start_dir)
@@ -266,15 +268,15 @@
 			if(AC)
 				to_chat(usr, SPAN_WARNING("\The [src] cannot be fastened here!"))  //might cause some friendly fire regarding other items like barbed wire, shouldn't be a problem?
 				return
+		if(static_frame && state == STATE_FRAME_PRIED)
+			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
+			deconstruct(TRUE)
 		if(!reinf || state == STATE_FRAME_PRIED)
 			anchored = !anchored
 			update_nearby_icons()
 			playsound(loc, "sound/items/Screwdriver.ogg", 25, 1)
 			to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] the window."))
 			return
-		if(static_frame && state == STATE_FRAME_PRIED)
-			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
-			deconstruct(TRUE)
 		if(state == STATE_STANDARD)
 			state = STATE_UNFASTENED
 			to_chat(user, SPAN_NOTICE("You have unfastened the window from the frame."))
@@ -284,22 +286,15 @@
 		else if(state == STATE_FRAME_PRIED)
 			anchored = !anchored
 			update_nearby_icons()
-
-		else if(state == 0 && !static_frame)
-			anchored = !anchored
-			update_nearby_icons()
-			playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
-			to_chat(user, (anchored ? SPAN_NOTICE("You have fastened the frame to the floor.") : SPAN_NOTICE("You have unfastened the frame from the floor.")))
-		else if(!reinf && !static_frame)
-			anchored = !anchored
-			update_nearby_icons()
-			playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
-			to_chat(user, (anchored ? SPAN_NOTICE("You have fastened the window to the floor.") : SPAN_NOTICE("You have unfastened the window.")))
 		playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
-	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && reinf && state <= 1 && !not_deconstructable)
-		state = 1 - state
+	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && reinf && !not_deconstructable)
+		if (state == STATE_UNFASTENED)
+			state = STATE_FRAME_PRIED
+			to_chat(user, SPAN_NOTICE("You have pried the window out of the frame."))
+		else if (state == STATE_FRAME_PRIED)
+			state = STATE_UNFASTENED
+			to_chat(user, SPAN_NOTICE("You have pried the window into the frame."))
 		playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
-		to_chat(user, (state ? SPAN_NOTICE("You have pried the window into the frame.") : SPAN_NOTICE("You have pried the window out of the frame.")))
 	else
 		if(!not_damageable) //Impossible to destroy
 			health -= W.force

@@ -110,7 +110,7 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 	if(masterkey_resist)
 		. += SPAN_INFO("It has been reinforced against breaching attempts.")
 	var/engi_examine_message = ""
-	if(!opened && !not_weldable)
+	if(density && !not_weldable)
 		engi_examine_message += "You can [SPAN_HELPFUL("weld")] the doors [welded ? "open" : "shut"]."
 	if(!no_panel)
 		engi_examine_message += "You can [SPAN_HELPFUL("screwdrive")] the maintenance panel [panel_open ? "open" : "shut"]."
