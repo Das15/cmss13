@@ -269,32 +269,53 @@
 				to_chat(usr, SPAN_WARNING("\The [src] cannot be fastened here!"))  //might cause some friendly fire regarding other items like barbed wire, shouldn't be a problem?
 				return
 		if(static_frame && state == STATE_FRAME_PRIED)
+			if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+				return
+			to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
 			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
 			deconstruct(TRUE)
-		if(!reinf || state == STATE_FRAME_PRIED)
+			return
+		// AFAIK it should do something every time someone screwdrives the window
+		if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+			return
+		else if(!reinf || state == STATE_FRAME_PRIED)
 			anchored = !anchored
+			to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] [src]."))
 			update_nearby_icons()
 			playsound(loc, "sound/items/Screwdriver.ogg", 25, 1)
-			to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] the window."))
 			return
-		if(state == STATE_STANDARD)
+		else if(state == STATE_STANDARD)
 			state = STATE_UNFASTENED
-			to_chat(user, SPAN_NOTICE("You have unfastened the window from the frame."))
+			to_chat(user, SPAN_NOTICE("You have unfastened [src] from the frame."))
 		else if(state == STATE_UNFASTENED)
 			state = STATE_STANDARD
-			to_chat(user, SPAN_NOTICE("You have fastened the window to the frame."))
+			to_chat(user, SPAN_NOTICE("You have fastened [src] to the frame."))
 		else if(state == STATE_FRAME_PRIED)
 			anchored = !anchored
 			update_nearby_icons()
 		playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
 	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && reinf && !not_deconstructable)
 		if (state == STATE_UNFASTENED)
+			if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+				return
 			state = STATE_FRAME_PRIED
-			to_chat(user, SPAN_NOTICE("You have pried the window out of the frame."))
+			to_chat(user, SPAN_NOTICE("You have pried [src] out of the frame."))
+			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
 		else if (state == STATE_FRAME_PRIED)
+			if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+				return
 			state = STATE_UNFASTENED
-			to_chat(user, SPAN_NOTICE("You have pried the window into the frame."))
-		playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
+			to_chat(user, SPAN_NOTICE("You have pried [src] into the frame."))
+			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
+	else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH))
+		if(!anchored && state == STATE_FRAME_PRIED)
+			to_chat(user, SPAN_NOTICE("You start disassembling [src]."))
+			if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+				return
+			to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
+			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW)
+			deconstruct(TRUE)
+			return
 	else
 		if(!not_damageable) //Impossible to destroy
 			health -= W.force
