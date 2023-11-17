@@ -111,14 +111,17 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		. += SPAN_INFO("It has been reinforced against breaching attempts.")
 	var/engi_examine_message = ""
 	if(density && !not_weldable)
-		engi_examine_message += "You can [SPAN_HELPFUL("weld")] the doors [welded ? "open" : "shut"]."
+		engi_examine_message += "You can [SPAN_HELPFUL("weld")] the doors [welded ? "open" : "shut"]. "
 	if(!no_panel)
-		engi_examine_message += "You can [SPAN_HELPFUL("screwdrive")] the maintenance panel [panel_open ? "open" : "shut"]."
+		if(!panel_open)
+			engi_examine_message += "The maintenance panel is [SPAN_HELPFUL("screwed")] in place."
+		else
+			engi_examine_message += "The maintenance panel can be closed with a [SPAN_HELPFUL("screwdriver")]."
 	if(welded && panel_open)
 		engi_examine_message += "You can disassemble with a [SPAN_HELPFUL("crowbar")]."
 	. += SPAN_NOTICE(engi_examine_message)
 
-/// DAMAGE CODE
+// DAMAGE CODE
 
 /obj/structure/machinery/door/airlock/proc/take_damage(dam, mob/M)
 	if(!dam || unacidable)
