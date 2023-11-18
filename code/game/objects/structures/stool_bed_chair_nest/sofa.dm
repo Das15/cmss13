@@ -4,7 +4,7 @@
 	icon = 'icons/obj/structures/props/sofas.dmi'
 	icon_state = "sofa" //use child icons
 	anchored = TRUE //can't rotate sofas
-	can_buckle = FALSE //Icons aren't setup for this to look right, so just disable it for now. Maybe when we fix the icons y'know?
+	buckle_lying = FALSE
 
 //South facing couches. To-do, replicate NicBoone icons and make north facing icons. Non-double vertical couches.
 
