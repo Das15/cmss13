@@ -111,9 +111,9 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		. += SPAN_INFO("It has been reinforced against breaching attempts.")
 	var/engi_examine_message = ""
 	if(damage > 0)
-		engi_examine_message += "You can mend the damage with a [SPAN_HELPFUL("welder")]. "
+		engi_examine_message += "The damage of [src] looks [SPAN_HELPFUL("weldable")]. "
 	else if(density && !not_weldable)
-		engi_examine_message += "You can [SPAN_HELPFUL("weld")] the doors [welded ? "open" : "shut"]. "
+		engi_examine_message += "You can [SPAN_HELPFUL("weld")] [src] [welded ? "open" : "shut"]. "
 	if(!no_panel)
 		if(!panel_open)
 			engi_examine_message += "The maintenance panel is [SPAN_HELPFUL("screwed")] in place."
@@ -598,28 +598,20 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		return
 
 	if((iswelder(attacking_item) && !operating && density))
-		var/obj/item/tool/weldingtool/W = attacking_item
+		var/obj/item/tool/weldingtool/welder = attacking_item
 		var/weldtime = 5 SECONDS
-		if(!HAS_TRAIT(W, TRAIT_TOOL_BLOWTORCH))
+		if(!HAS_TRAIT(welder, TRAIT_TOOL_BLOWTORCH))
 			weldtime = 7 SECONDS
 
-		if(not_weldable)
-			to_chat(user, SPAN_WARNING("\The [src] would require something a lot stronger than \the [W] to weld!"))
-			return
-		if(!W.isOn())
-			to_chat(user, SPAN_WARNING("\The [W] needs to be on!"))
-			return
-		if(W.remove_fuel(0,user))
-			user.visible_message(SPAN_NOTICE("[user] starts working on \the [src] with \the [W]."), \
-			SPAN_NOTICE("You start working on \the [src] with \the [W]."), \
-			SPAN_NOTICE("You hear welding."))
-			playsound(loc, 'sound/items/weldingtool_weld.ogg', 25)
-			if(!do_after(user, weldtime, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD) && density)
-				return
-			if(damage > 0)
+		if(damage > 0)
+			if(weld_doors(user, welder, weldtime))
 				damage = 0
-			else
-				welded = !welded
+			return
+		if(not_weldable)
+			to_chat(user, SPAN_WARNING("\The [src] would require something a lot stronger than \the [welder] to weld!"))
+			return
+		if(weld_doors(user, welder, weldtime))
+			welded = !welded
 			update_icon()
 		return
 
@@ -736,6 +728,19 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 	else
 		return ..()
 
+/// Returns TRUE when welding succeded, FALSE if not.
+/obj/structure/machinery/door/airlock/proc/weld_doors(mob/user, obj/item/tool/weldingtool/welder, weldtime)
+	if(!welder.isOn())
+		to_chat(user, SPAN_WARNING("\The [welder] needs to be on!"))
+		return FALSE
+	if(welder.remove_fuel(0, user))
+		user.visible_message(SPAN_NOTICE("[user] starts working on \the [src] with \the [welder]."), \
+		SPAN_NOTICE("You start working on \the [src] with \the [welder]."), \
+		SPAN_NOTICE("You hear welding."))
+		playsound(loc, 'sound/items/weldingtool_weld.ogg', 25)
+		if(!do_after(user, weldtime, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD) && density)
+			return FALSE
+		return TRUE
 
 /obj/structure/machinery/door/airlock/open(forced=0)
 	if( operating || welded || locked || !loc)
