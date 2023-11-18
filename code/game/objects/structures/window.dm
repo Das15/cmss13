@@ -29,13 +29,10 @@
 /obj/structure/window/Initialize()
 	. = ..()
 	update_icon()
-
 	if(shardtype)
 		LAZYADD(debris, shardtype)
-
 	if(reinf)
 		LAZYADD(debris, /obj/item/stack/rods)
-
 	if(is_full_window())
 		LAZYADD(debris, shardtype)
 		update_nearby_icons()
@@ -219,6 +216,15 @@
 	user.visible_message(SPAN_DANGER("[user] smashes into [src]!"))
 	healthcheck(1, 1, 1, user)
 
+/// Usually handles last step of deconstruction, i.e. unanchoring / anchoring the window, has built-in 1 sec do_after
+/obj/structure/window/proc/handle_anchoring(mob/user)
+	if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+		return
+	anchored = !anchored
+	to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] [src]."))
+	update_nearby_icons()
+	return
+
 /obj/structure/window/attack_animal(mob/user as mob)
 	if(!isanimal(user)) return
 	var/mob/living/simple_animal/M = user
@@ -231,9 +237,9 @@
 		var/obj/item/grab/G = W
 		if(istype(G.grabbed_thing, /mob/living))
 			var/mob/living/M = G.grabbed_thing
-			var/state = user.grab_level
+			var/grab_state = user.grab_level
 			user.drop_held_item()
-			switch(state)
+			switch(grab_state)
 				if(GRAB_PASSIVE)
 					M.visible_message(SPAN_WARNING("[user] slams [M] against \the [src]!"))
 					M.apply_damage(7)
@@ -268,32 +274,30 @@
 			if(AC)
 				to_chat(usr, SPAN_WARNING("\The [src] cannot be fastened here!"))  //might cause some friendly fire regarding other items like barbed wire, shouldn't be a problem?
 				return
-		if(static_frame && state == STATE_FRAME_PRIED)
-			if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-				return
-			to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
-			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
-			deconstruct(TRUE)
-			return
-		// AFAIK it should do something every time someone screwdrives the window
-		if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-			return
-		else if(!reinf || state == STATE_FRAME_PRIED)
-			anchored = !anchored
-			to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] [src]."))
-			update_nearby_icons()
-			playsound(loc, "sound/items/Screwdriver.ogg", 25, 1)
-			return
-		else if(state == STATE_STANDARD)
-			state = STATE_UNFASTENED
-			to_chat(user, SPAN_NOTICE("You have unfastened [src] from the frame."))
-		else if(state == STATE_UNFASTENED)
-			state = STATE_STANDARD
-			to_chat(user, SPAN_NOTICE("You have fastened [src] to the frame."))
-		else if(state == STATE_FRAME_PRIED)
-			anchored = !anchored
-			update_nearby_icons()
 		playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
+		if(!reinf)
+			handle_anchoring(user)
+			return
+		switch(state)
+			if(STATE_STANDARD)
+				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+						return
+				state = STATE_UNFASTENED
+				to_chat(user, SPAN_NOTICE("You have unfastened [src] from the frame."))
+			if(STATE_UNFASTENED)
+				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+					return
+				state = STATE_STANDARD
+				to_chat(user, SPAN_NOTICE("You have fastened [src] to the frame."))
+			if(STATE_FRAME_PRIED)
+				if(static_frame)
+					if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+						return
+					to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
+					SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
+					deconstruct(TRUE)
+					return
+				handle_anchoring(user)
 	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && reinf && !not_deconstructable)
 		if (state == STATE_UNFASTENED)
 			if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
