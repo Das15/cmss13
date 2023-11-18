@@ -13,11 +13,11 @@
 	flags_atom = ON_BORDER|FPRINT
 	health = 15
 	var/state = STATE_STANDARD
-	var/reinf = 0
+	var/reinf = FALSE
 	var/basestate = "window"
 	var/shardtype = /obj/item/shard
 	var/windowknock_cooldown = 0
-	var/static_frame = 0 //True/false. If true, can't move the window
+	var/static_frame = FALSE //True/false. If true, can't move the window
 	var/junction = 0 //Because everything is terrible, I'm making this a window-level var
 	var/not_damageable = 0
 	var/not_deconstructable = 0
@@ -281,7 +281,7 @@
 		switch(state)
 			if(STATE_STANDARD)
 				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-						return
+					return
 				state = STATE_UNFASTENED
 				to_chat(user, SPAN_NOTICE("You have unfastened [src] from the frame."))
 			if(STATE_UNFASTENED)
@@ -313,7 +313,6 @@
 			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
 	else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH))
 		if(!anchored && state == STATE_FRAME_PRIED)
-			to_chat(user, SPAN_NOTICE("You start disassembling [src]."))
 			if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 				return
 			to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
@@ -335,11 +334,14 @@
 	return !(flags_atom & ON_BORDER)
 
 /obj/structure/window/deconstruct(disassembled = TRUE)
+	var/glass_amount = legacy_full ? 4 : 1
+	if(static_frame)
+		glass_amount = 2
 	if(disassembled)
 		if(reinf)
-			new /obj/item/stack/sheet/glass/reinforced(loc, 2)
+			new /obj/item/stack/sheet/glass/reinforced(loc, glass_amount)
 		else
-			new /obj/item/stack/sheet/glass(loc, 2)
+			new /obj/item/stack/sheet/glass(loc, glass_amount)
 	return ..()
 
 
@@ -425,7 +427,7 @@
 	desc = "A phoron-glass alloy window with a rod matrix. It looks hopelessly tough to break. It also looks completely fireproof, considering how basic phoron windows are insanely fireproof."
 	icon_state = "phoronrwindow0"
 	shardtype = /obj/item/shard/phoron
-	reinf = 1
+	reinf = TRUE
 	health = 160
 
 /obj/structure/window/phoronreinforced/fire_act(exposed_temperature, exposed_volume)
@@ -444,7 +446,7 @@
 	icon_state = "rwindow"
 	basestate = "rwindow"
 	health = 40
-	reinf = 1
+	reinf = TRUE
 
 /obj/structure/window/reinforced/toughened
 	name = "safety glass"
@@ -452,7 +454,7 @@
 	icon_state = "rwindow"
 	basestate = "rwindow"
 	health = 300
-	reinf = 1
+	reinf = TRUE
 
 
 
@@ -510,7 +512,7 @@
 	icon_state = "window"
 	basestate = "window"
 	health = 40
-	reinf = 1
+	reinf = TRUE
 	flags_atom = FPRINT
 
 /obj/structure/window/shuttle/update_icon() //icon_state has to be set manually
@@ -529,7 +531,7 @@
 /obj/structure/window/framed
 	name = "theoretical window"
 	layer = TABLE_LAYER
-	static_frame = 1
+	static_frame = TRUE
 	flags_atom = FPRINT
 	var/window_frame //For perspective windows,so the window frame doesn't magically dissapear
 	var/list/tiles_special = list(/obj/structure/machinery/door/airlock,
@@ -603,7 +605,7 @@
 	icon_state = "alm_rwindow0"
 	basestate = "alm_rwindow"
 	health = 100 //Was 600
-	reinf = 1
+	reinf = TRUE
 	dir = NORTHEAST
 	window_frame = /obj/structure/window_frame/almayer
 
@@ -652,7 +654,7 @@
 	basestate = "col_rwindow"
 	desc = "A glass window with a special rod matrix inside a wall frame. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/colony/reinforced
 
 /obj/structure/window/framed/colony/reinforced/tinted
@@ -680,7 +682,7 @@
 	basestate = "chig_rwindow"
 	desc = "A glass window with a special rod matrix inside a wall frame. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/chigusa
 
 
@@ -700,7 +702,7 @@
 	basestate = "hngr_rwindow"
 	desc = "A glass window with a special rod matrix inside a wall frame. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/hangar/reinforced
 
 /obj/structure/window/framed/bunker
@@ -717,7 +719,7 @@
 	basestate = "bnkr_rwindow"
 	desc = "A glass window with a special rod matrix inside a wall frame. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/bunker/reinforced
 
 
@@ -731,7 +733,7 @@
 	name = "reinforced window"
 	desc = "A glass window with a special rod matrix inside a wall frame. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	icon_state = "wood_rwindow0"
 	basestate = "wood_rwindow"
 	window_frame = /obj/structure/window_frame/wood
@@ -753,7 +755,7 @@
 	basestate = "strata_window"
 	desc = "A glass window. Light refracts incorrectly when looking through. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/strata/reinforced
 
 /obj/structure/window/framed/strata/hull
@@ -783,7 +785,7 @@
 	basestate = "kutjevo_window_alt"
 	desc = "A glass window. Cross bars are visible. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/kutjevo/reinforced
 
 /obj/structure/window/framed/kutjevo/reinforced/hull
@@ -821,7 +823,7 @@
 	basestate = "solaris_rwindow"
 	desc = "A glass window. The inside is reinforced with a few tempered matrix rods along the base. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/solaris/reinforced
 
 /obj/structure/window/framed/solaris/reinforced/hull
@@ -853,7 +855,7 @@
 	basestate = "dev_rwindow"
 	desc = "A glass window inside a reinforced wall frame. Just like in the orange box!"
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	window_frame = /obj/structure/window_frame/dev/reinforced
 
 /obj/structure/window/framed/dev/reinforced/hull
@@ -878,7 +880,7 @@
 	name = "reinforced window"
 	desc = "A glass window with a special rod matrix inside a wall frame. It looks rather strong. Might take a few good hits to shatter it."
 	health = 100
-	reinf = 1
+	reinf = TRUE
 	icon_state = "prison_rwindow0"
 	basestate = "prison_rwindow"
 	window_frame = /obj/structure/window_frame/prison/reinforced
