@@ -157,7 +157,7 @@
 		if (acided_hole)
 			. += SPAN_WARNING("It looks fully intact, except there's a large hole that could've been caused by some sort of acid.")
 		else
-			. += SPAN_NOTICE("It looks fully intact.")
+			. += SPAN_INFO("It looks fully intact.")
 	else
 		var/dam = damage / damage_cap
 		if(dam <= 0.3)
@@ -172,15 +172,15 @@
 
 	switch(d_state)
 		if(WALL_STATE_WELD)
-			. += SPAN_INFO("The outer plating is intact. A [SPAN_HELPFUL("blowtorch")] should slice it open.")
+			. += SPAN_NOTICE("The outer plating is intact. A [SPAN_HELPFUL("blowtorch")] should slice it open.")
 		if(WALL_STATE_SCREW)
-			. += SPAN_INFO("The outer plating has been sliced open. A [SPAN_HELPFUL("screwdriver")] should remove the support lines.")
+			. += SPAN_NOTICE("The outer plating has been sliced open. A [SPAN_HELPFUL("screwdriver")] should remove the support lines.")
 		if(WALL_STATE_WIRECUTTER)
-			. += SPAN_INFO("The support lines have been removed. [SPAN_HELPFUL("Wirecutters")] will take care of the hydraulic lines.")
+			. += SPAN_NOTICE("The support lines have been removed. [SPAN_HELPFUL("Wirecutters")] will take care of the hydraulic lines.")
 		if(WALL_STATE_WRENCH)
-			. += SPAN_INFO("The hydralic lines have been cut. A [SPAN_HELPFUL("wrench")] will remove the anchor bolts.")
+			. += SPAN_NOTICE("The hydralic lines have been cut. A [SPAN_HELPFUL("wrench")] will remove the anchor bolts.")
 		if(WALL_STATE_CROWBAR)
-			. += SPAN_INFO("The anchor bolts have been removed. A [SPAN_HELPFUL("crowbar")] will pry apart the connecting rods.")
+			. += SPAN_NOTICE("The anchor bolts have been removed. A [SPAN_HELPFUL("crowbar")] will pry apart the connecting rods.")
 
 //Damage
 /turf/closed/wall/proc/take_damage(dam, mob/M)
