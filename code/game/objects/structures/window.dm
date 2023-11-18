@@ -17,7 +17,8 @@
 	var/basestate = "window"
 	var/shardtype = /obj/item/shard
 	var/windowknock_cooldown = 0
-	var/static_frame = FALSE //True/false. If true, can't move the window
+	/// Used for window frames. If TRUE can't move the window
+	var/static_frame = FALSE
 	var/junction = 0 //Because everything is terrible, I'm making this a window-level var
 	var/not_damageable = 0
 	var/not_deconstructable = 0
@@ -53,6 +54,28 @@
 	..()
 	if (PF)
 		PF.flags_can_pass_all = PASS_HIGH_OVER_ONLY|PASS_GLASS
+
+/obj/structure/window/get_examine_text(mob/user)
+	. = ..()
+	var/engi_examine_message = ""
+	switch(state)
+		if(STATE_STANDARD)
+			engi_examine_message += "It is [SPAN_HELPFUL("screwed")] to the frame. "
+		if(STATE_UNFASTENED)
+			engi_examine_message += "You can [SPAN_HELPFUL("pry")] [src] out of the frame. "
+			engi_examine_message += "Its [SPAN_HELPFUL("screws")] can be fastened to the frame. "
+		if(STATE_FRAME_PRIED || !reinf)
+			if(static_frame)
+				engi_examine_message += "You can remove [src] with a [SPAN_HELPFUL("screwdriver")]. "
+			else if(anchored)
+				engi_examine_message += "It is [SPAN_HELPFUL("screwed")] to the floor. "
+			else
+				engi_examine_message += "It is unanchored. Its [SPAN_HELPFUL("screws")] can be fastened to the floor. "
+			if(reinf && anchored)
+				engi_examine_message += "You can [SPAN_HELPFUL("pry")] [src] into the frame. "
+	if(!anchored)
+		engi_examine_message += "You can disassemble [src] with a [SPAN_HELPFUL("wrench")]."
+	. += SPAN_NOTICE(engi_examine_message)
 
 /obj/structure/window/proc/set_constructed_window(start_dir)
 	state = STATE_FRAME_PRIED
@@ -305,7 +328,7 @@
 			state = STATE_FRAME_PRIED
 			to_chat(user, SPAN_NOTICE("You have pried [src] out of the frame."))
 			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
-		else if (state == STATE_FRAME_PRIED)
+		else if (state == STATE_FRAME_PRIED && anchored)
 			if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 				return
 			state = STATE_UNFASTENED
