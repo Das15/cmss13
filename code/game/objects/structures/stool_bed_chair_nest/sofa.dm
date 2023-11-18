@@ -41,6 +41,10 @@
 
 //Vertical double sided couches. Think airport lounge.
 
+/obj/structure/bed/sofa/vert
+	// Nope vertical sofas' buckling is STILL broken.
+	can_buckle = FALSE
+
 /obj/structure/bed/sofa/vert/grey //center
 	name = "Couch"
 	icon_state = "couch_vet2"
