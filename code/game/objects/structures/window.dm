@@ -198,7 +198,7 @@
 		user.visible_message(SPAN_WARNING("[user] bangs against [src]!"),
 		SPAN_WARNING("You bang against [src]!"),
 		SPAN_WARNING("You hear a banging sound."))
-		windowknock_cooldown = world.time + 100
+		windowknock_cooldown = world.time + 2 SECONDS
 	else
 		if(windowknock_cooldown > world.time)
 			return
@@ -206,7 +206,7 @@
 		user.visible_message(SPAN_NOTICE("[user] knocks on [src]."),
 		SPAN_NOTICE("You knock on [src]."),
 		SPAN_NOTICE("You hear a knocking sound."))
-		windowknock_cooldown = world.time + 100
+		windowknock_cooldown = world.time + 2 SECONDS
 
 //Used by attack_animal
 /obj/structure/window/proc/attack_generic(mob/living/user, damage = 0)
@@ -311,14 +311,13 @@
 			state = STATE_UNFASTENED
 			to_chat(user, SPAN_NOTICE("You have pried [src] into the frame."))
 			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
-	else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH))
+	else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH) && !not_deconstructable)
 		if(!anchored && state == STATE_FRAME_PRIED)
 			if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 				return
 			to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
 			SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW)
 			deconstruct(TRUE)
-			return
 	else
 		if(!not_damageable) //Impossible to destroy
 			health -= W.force
