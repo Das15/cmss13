@@ -110,7 +110,9 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 	if(masterkey_resist)
 		. += SPAN_INFO("It has been reinforced against breaching attempts.")
 	var/engi_examine_message = ""
-	if(density && !not_weldable)
+	if(damage > 0)
+		engi_examine_message += "You can mend the damage with a [SPAN_HELPFUL("welder")]. "
+	else if(density && !not_weldable)
 		engi_examine_message += "You can [SPAN_HELPFUL("weld")] the doors [welded ? "open" : "shut"]. "
 	if(!no_panel)
 		if(!panel_open)
@@ -597,9 +599,9 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 
 	if((iswelder(attacking_item) && !operating && density))
 		var/obj/item/tool/weldingtool/W = attacking_item
-		var/weldtime = 50
+		var/weldtime = 5 SECONDS
 		if(!HAS_TRAIT(W, TRAIT_TOOL_BLOWTORCH))
-			weldtime = 70
+			weldtime = 7 SECONDS
 
 		if(not_weldable)
 			to_chat(user, SPAN_WARNING("\The [src] would require something a lot stronger than \the [W] to weld!"))
@@ -612,12 +614,13 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 			SPAN_NOTICE("You start working on \the [src] with \the [W]."), \
 			SPAN_NOTICE("You hear welding."))
 			playsound(loc, 'sound/items/weldingtool_weld.ogg', 25)
-			if(do_after(user, weldtime, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD) && density)
-				if(!welded)
-					welded = 1
-				else
-					welded = null
-				update_icon()
+			if(!do_after(user, weldtime, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD) && density)
+				return
+			if(damage > 0)
+				damage = 0
+			else
+				welded = !welded
+			update_icon()
 		return
 
 	else if(HAS_TRAIT(attacking_item, TRAIT_TOOL_SCREWDRIVER))
