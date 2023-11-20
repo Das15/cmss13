@@ -1,6 +1,7 @@
 #define STATE_STANDARD 0
 #define STATE_UNFASTENED 1
 #define STATE_FRAME_PRIED 2
+#define STATE_UNANCHORED 3
 
 /obj/structure/window
 	name = "window"
@@ -38,7 +39,7 @@
 		LAZYADD(debris, shardtype)
 		update_nearby_icons()
 	if(!anchored)
-		state = STATE_FRAME_PRIED
+		state = STATE_UNANCHORED
 
 /obj/structure/window/Destroy(force)
 	density = FALSE
@@ -66,19 +67,17 @@
 			engi_examine_message += "Its [SPAN_HELPFUL("screws")] can be fastened to the frame. "
 		if(STATE_FRAME_PRIED || !reinf)
 			if(static_frame)
-				engi_examine_message += "You can remove [src] with a [SPAN_HELPFUL("screwdriver")]. "
-			else if(anchored)
-				engi_examine_message += "It is [SPAN_HELPFUL("screwed")] to the floor. "
+				engi_examine_message += "You can remove it with a [SPAN_HELPFUL("screwdriver")]. "
 			else
-				engi_examine_message += "It is unanchored. Its [SPAN_HELPFUL("screws")] can be fastened to the floor. "
-			if(reinf && anchored)
-				engi_examine_message += "You can [SPAN_HELPFUL("pry")] [src] into the frame. "
-	if(!anchored)
-		engi_examine_message += "You can disassemble [src] with a [SPAN_HELPFUL("wrench")]."
+				engi_examine_message += "It is [SPAN_HELPFUL("screwed")] to the floor. "
+			engi_examine_message += "You can [SPAN_HELPFUL("pry")] [src] into the frame. "
+		if(STATE_UNANCHORED)
+			engi_examine_message += "It is unanchored. Its [SPAN_HELPFUL("screws")] can be fastened to the floor. "
+			engi_examine_message += "You can disassemble [src] with a [SPAN_HELPFUL("wrench")]."
 	. += SPAN_NOTICE(engi_examine_message)
 
 /obj/structure/window/proc/set_constructed_window(start_dir)
-	state = STATE_FRAME_PRIED
+	state = STATE_UNANCHORED
 	anchored = FALSE
 
 	if(start_dir)
@@ -243,7 +242,10 @@
 /obj/structure/window/proc/handle_anchoring(mob/user)
 	if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 		return
+	// Non-reinforced windows should only have 2 states, standard and unanchored
+	var/next_to_last_state = reinf ? STATE_FRAME_PRIED : STATE_STANDARD
 	anchored = !anchored
+	state = anchored ? next_to_last_state : STATE_UNANCHORED
 	to_chat(user, SPAN_NOTICE("You have [anchored ? "anchored" : "unanchored"] [src]."))
 	update_nearby_icons()
 	return
@@ -298,15 +300,14 @@
 				to_chat(usr, SPAN_WARNING("\The [src] cannot be fastened here!"))  //might cause some friendly fire regarding other items like barbed wire, shouldn't be a problem?
 				return
 		playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
-		if(!reinf)
-			handle_anchoring(user)
-			return
 		switch(state)
 			if(STATE_STANDARD)
 				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 					return
-				state = STATE_UNFASTENED
-				to_chat(user, SPAN_NOTICE("You have unfastened [src] from the frame."))
+				state = reinf ? STATE_UNFASTENED : STATE_UNANCHORED
+				if(!reinf)
+					anchored = !anchored
+				to_chat(user, SPAN_NOTICE("You have unfastened [src] from the [reinf ? "frame" : "floor"]."))
 			if(STATE_UNFASTENED)
 				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 					return
@@ -319,23 +320,24 @@
 					to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
 					SEND_SIGNAL(user, COMSIG_MOB_DISASSEMBLE_WINDOW, src)
 					deconstruct(TRUE)
-					return
+			if(STATE_UNANCHORED)
 				handle_anchoring(user)
-	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && reinf && !not_deconstructable)
-		if (state == STATE_UNFASTENED)
-			if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-				return
-			state = STATE_FRAME_PRIED
-			to_chat(user, SPAN_NOTICE("You have pried [src] out of the frame."))
-			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
-		else if (state == STATE_FRAME_PRIED && anchored)
-			if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-				return
-			state = STATE_UNFASTENED
-			to_chat(user, SPAN_NOTICE("You have pried [src] into the frame."))
-			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
+	else if(HAS_TRAIT(W, TRAIT_TOOL_CROWBAR) && !not_deconstructable)
+		switch(state)
+			if(STATE_UNFASTENED)
+				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+					return
+				state = STATE_FRAME_PRIED
+				to_chat(user, SPAN_NOTICE("You have pried [src] out of the frame."))
+				playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
+			if(STATE_FRAME_PRIED)
+				if(!do_after(user, 1 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
+					return
+				state = STATE_UNFASTENED
+				to_chat(user, SPAN_NOTICE("You have pried [src] into the frame."))
+				playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
 	else if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH) && !not_deconstructable)
-		if(!anchored && state == STATE_FRAME_PRIED)
+		if(state == STATE_UNANCHORED)
 			if(!do_after(user, 2 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 				return
 			to_chat(user, SPAN_NOTICE("You have disassembled [src]."))
