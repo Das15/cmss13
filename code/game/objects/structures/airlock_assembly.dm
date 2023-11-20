@@ -148,7 +148,7 @@
 				playsound(loc, 'sound/items/Screwdriver.ogg', 25, 1)
 				user.drop_held_item()
 				attacking_item.forceMove(src)
-				to_chat(user, SPAN_NOTICE("You installed the airlock electronics!"))
+				to_chat(user, SPAN_NOTICE("You have installed the airlock electronics."))
 				state = STATE_CIRCUIT
 				electronics = attacking_item
 				update_icon()

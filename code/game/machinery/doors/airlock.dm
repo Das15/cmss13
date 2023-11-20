@@ -116,9 +116,9 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		engi_examine_message += "You can [SPAN_HELPFUL("weld")] [src] [welded ? "open" : "shut"]. "
 	if(!no_panel)
 		if(!panel_open)
-			engi_examine_message += "The maintenance panel is [SPAN_HELPFUL("screwed")] in place."
+			engi_examine_message += "The maintenance panel's cover is [SPAN_HELPFUL("screwed")] in place."
 		else
-			engi_examine_message += "The maintenance panel can be closed with a [SPAN_HELPFUL("screwdriver")]."
+			engi_examine_message += "The maintenance panel's cover can be closed with a [SPAN_HELPFUL("screwdriver")]."
 	if(welded && panel_open)
 		engi_examine_message += "You can disassemble with a [SPAN_HELPFUL("crowbar")]."
 	. += SPAN_NOTICE(engi_examine_message)
@@ -659,9 +659,10 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 				to_chat(user, SPAN_WARNING("You don't seem to know how to deconstruct machines."))
 				return
 			playsound(loc, 'sound/items/Crowbar.ogg', 25, 1)
-			user.visible_message("[user] starts removing the electronics from the airlock assembly.", "You start removing electronics from the airlock assembly.")
+			user.visible_message(SPAN_NOTICE("[user] starts removing the electronics from the airlock assembly."),\
+			SPAN_NOTICE("You start removing electronics from the airlock assembly."))
 			if(do_after(user, 40, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
-				to_chat(user, SPAN_NOTICE(" You removed the airlock electronics!"))
+				to_chat(user, SPAN_NOTICE("You have removed the airlock electronics."))
 
 				var/obj/structure/airlock_assembly/doors_assembly = new assembly_type(loc)
 				if(istype(doors_assembly, /obj/structure/airlock_assembly/multi_tile))
@@ -740,6 +741,7 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		playsound(loc, 'sound/items/weldingtool_weld.ogg', 25)
 		if(!do_after(user, weldtime, INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD) && density)
 			return FALSE
+		to_chat(user, SPAN_NOTICE("You finish welding."))
 		return TRUE
 
 /obj/structure/machinery/door/airlock/open(forced=0)
