@@ -42,25 +42,73 @@
 		if(BARRICADE_UPGRADE_ANTIFF)
 			. += SPAN_NOTICE("The cade is protected by a composite upgrade.")
 
+/obj/structure/barricade/metal/proc/check_upgrade_validity(obj/item/stack/sheet/metal/metal, mob/user)
+	if(!user.Adjacent(src))
+		to_chat(user, SPAN_NOTICE("You are too far away!"))
+		return
+	if(upgraded)
+		to_chat(user, SPAN_NOTICE("This barricade is already upgraded."))
+		return
+	if(metal.get_amount() < 2)
+		to_chat(user, SPAN_NOTICE("You lack the required metal."))
+		return
+	if((usr.get_active_hand()) != metal)
+		to_chat(user, SPAN_WARNING("You must be holding the [metal] to upgrade \the [src]!"))
+		return
+	return TRUE
+
+/obj/structure/barricade/metal/proc/upgrade_barricade(choice, obj/item/stack/sheet/metal/metal, mob/user)
+	switch(choice)
+		if(BARRICADE_UPGRADE_BURN)
+			burn_multiplier = 0.75
+			burn_flame_multiplier = 0.75
+			upgraded = BARRICADE_UPGRADE_BURN
+			to_chat(user, SPAN_NOTICE("You applied a biohazardous upgrade."))
+		if(BARRICADE_UPGRADE_BRUTE)
+			brute_multiplier = 0.75
+			brute_projectile_multiplier = 0.75
+			upgraded = BARRICADE_UPGRADE_BRUTE
+			to_chat(user, SPAN_NOTICE("You applied a reinforced upgrade."))
+		if(BARRICADE_UPGRADE_ANTIFF)
+			explosive_multiplier = 0.5
+			brute_projectile_multiplier = 0.5
+			burn_flame_multiplier = 0.5
+			upgraded = BARRICADE_UPGRADE_ANTIFF
+			to_chat(user, SPAN_NOTICE("You applied a composite upgrade."))
+
+	metal.use(2)
+	user.count_niche_stat(STATISTICS_NICHE_UPGRADE_CADES)
+	update_icon()
+	return
+
+/obj/structure/barricade/metal/proc/tgui_upgrade_menu(obj/item/stack/sheet/metal/metal, mob/user)
+	var/choice = tgui_input_list(user, "Choose an upgrade to apply to the barricade", "Apply Upgrade", list(BARRICADE_UPGRADE_BURN, BARRICADE_UPGRADE_BRUTE, BARRICADE_UPGRADE_ANTIFF))
+	if(!choice)
+		return
+	if(!check_upgrade_validity(metal, user))
+		return
+	upgrade_barricade(choice, metal, user)
+
+/obj/structure/barricade/metal/proc/radial_upgrade_menu(obj/item/stack/sheet/metal/metal, mob/user)
+	var/static/list/cade_types = list(BARRICADE_UPGRADE_ANTIFF = image(icon = 'icons/obj/structures/barricades.dmi', icon_state = "explosive_obj"), BARRICADE_UPGRADE_BRUTE = image(icon = 'icons/obj/structures/barricades.dmi', icon_state = "brute_obj"), BARRICADE_UPGRADE_BURN = image(icon = 'icons/obj/structures/barricades.dmi', icon_state = "burn_obj"))
+	var/choice = show_radial_menu(user, src, cade_types, require_near = TRUE)
+	if(!choice)
+		return
+	if(!check_upgrade_validity(metal, user))
+		return
+	upgrade_barricade(choice, metal, user)
+
 /obj/structure/barricade/metal/attackby(obj/item/item, mob/user)
 	if(iswelder(item))
-		if(!HAS_TRAIT(item, TRAIT_TOOL_BLOWTORCH))
-			to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
-			return
 		if(user.action_busy)
 			return
 		if(!skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_TRAINED))
 			to_chat(user, SPAN_WARNING("You're not trained to repair [src]..."))
 			return
-		var/obj/item/tool/weldingtool/welder = item
 		if(damage_state == BARRICADE_DMG_HEAVY)
 			to_chat(user, SPAN_WARNING("[src] has sustained too much structural damage to be repaired."))
 			return
-
-		if(health == maxhealth)
-			to_chat(user, SPAN_WARNING("[src] doesn't need repairs."))
-			return
-
+		var/obj/item/tool/weldingtool/welder = item
 		weld_cade(welder, user)
 		return
 
@@ -97,84 +145,9 @@
 					return
 				var/obj/item/stack/sheet/metal/metal = item
 				if(user.client?.prefs?.no_radials_preference)
-					var/choice = tgui_input_list(user, "Choose an upgrade to apply to the barricade", "Apply Upgrade", list(BARRICADE_UPGRADE_BURN, BARRICADE_UPGRADE_BRUTE, BARRICADE_UPGRADE_ANTIFF))
-					if(!choice)
-						return
-					if(!user.Adjacent(src))
-						to_chat(user, SPAN_NOTICE("You are too far away!"))
-						return
-					if(upgraded)
-						to_chat(user, SPAN_NOTICE("This barricade is already upgraded."))
-						return
-					if(metal.get_amount() < 2)
-						to_chat(user, SPAN_NOTICE("You lack the required metal."))
-						return
-					if((usr.get_active_hand()) != metal)
-						to_chat(user, SPAN_WARNING("You must be holding the [metal] to upgrade \the [src]!"))
-						return
-
-					switch(choice)
-						if(BARRICADE_UPGRADE_BURN)
-							burn_multiplier = 0.75
-							burn_flame_multiplier = 0.75
-							upgraded = BARRICADE_UPGRADE_BURN
-							to_chat(user, SPAN_NOTICE("You applied a biohazardous upgrade."))
-						if(BARRICADE_UPGRADE_BRUTE)
-							brute_multiplier = 0.75
-							brute_projectile_multiplier = 0.75
-							upgraded = BARRICADE_UPGRADE_BRUTE
-							to_chat(user, SPAN_NOTICE("You applied a reinforced upgrade."))
-						if(BARRICADE_UPGRADE_ANTIFF)
-							explosive_multiplier = 0.5
-							brute_projectile_multiplier = 0.5
-							burn_flame_multiplier = 0.5
-							upgraded = BARRICADE_UPGRADE_ANTIFF
-							to_chat(user, SPAN_NOTICE("You applied a composite upgrade."))
-
-					metal.use(2)
-					user.count_niche_stat(STATISTICS_NICHE_UPGRADE_CADES)
-					update_icon()
-					return
+					tgui_upgrade_menu(metal, user)
 				else
-					var/static/list/cade_types = list(BARRICADE_UPGRADE_ANTIFF = image(icon = 'icons/obj/structures/barricades.dmi', icon_state = "explosive_obj"), BARRICADE_UPGRADE_BRUTE = image(icon = 'icons/obj/structures/barricades.dmi', icon_state = "brute_obj"), BARRICADE_UPGRADE_BURN = image(icon = 'icons/obj/structures/barricades.dmi', icon_state = "burn_obj"))
-					var/choice = show_radial_menu(user, src, cade_types, require_near = TRUE)
-					if(!choice)
-						return
-					if(!user.Adjacent(src))
-						to_chat(user, SPAN_NOTICE("You are too far away!"))
-						return
-					if(upgraded)
-						to_chat(user, SPAN_NOTICE("This barricade is already upgraded."))
-						return
-					if(metal.get_amount() < 2)
-						to_chat(user, SPAN_NOTICE("You lack the required metal."))
-						return
-					if((usr.get_active_hand()) != metal)
-						to_chat(user, SPAN_WARNING("You must be holding the [metal] to upgrade \the [src]!"))
-						return
-
-					switch(choice)
-						if(BARRICADE_UPGRADE_BURN)
-							burn_multiplier = 0.75
-							burn_flame_multiplier = 0.75
-							upgraded = BARRICADE_UPGRADE_BURN
-							to_chat(user, SPAN_NOTICE("You applied a biohazardous upgrade."))
-						if(BARRICADE_UPGRADE_BRUTE)
-							brute_multiplier = 0.75
-							brute_projectile_multiplier = 0.75
-							upgraded = BARRICADE_UPGRADE_BRUTE
-							to_chat(user, SPAN_NOTICE("You applied a reinforced upgrade."))
-						if(BARRICADE_UPGRADE_ANTIFF)
-							explosive_multiplier = 0.5
-							brute_projectile_multiplier = 0.5
-							burn_flame_multiplier = 0.5
-							upgraded = BARRICADE_UPGRADE_ANTIFF
-							to_chat(user, SPAN_NOTICE("You applied a composite upgrade."))
-
-					metal.use(2)
-					user.count_niche_stat(STATISTICS_NICHE_UPGRADE_CADES)
-					update_icon()
-					return
+					radial_upgrade_menu(metal, user)
 
 			if(HAS_TRAIT(item, TRAIT_TOOL_MULTITOOL))
 				if(!skillcheck(user, SKILL_CONSTRUCTION, SKILL_CONSTRUCTION_TRAINED))
@@ -192,7 +165,7 @@
 				brute_projectile_multiplier = initial(brute_projectile_multiplier)
 				burn_multiplier = initial(burn_multiplier)
 				burn_flame_multiplier = initial(burn_flame_multiplier)
-				new stack_type (loc, 1)
+				new stack_type(user.loc, 1)
 				update_icon()
 				return
 

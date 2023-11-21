@@ -78,10 +78,6 @@
 			to_chat(user, SPAN_WARNING("[src] has sustained too much structural damage to be repaired."))
 			return
 
-		if(health == maxhealth)
-			to_chat(user, SPAN_WARNING("[src] doesn't need repairs."))
-			return
-
 		weld_cade(WT, user)
 		return
 
