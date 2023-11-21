@@ -32,10 +32,6 @@
 		if(user.action_busy)
 			return
 		var/obj/item/tool/weldingtool/welder = item
-		if(health == maxhealth)
-			to_chat(user, SPAN_WARNING("[src] doesn't need repairs."))
-			return
-
 		weld_cade(welder, user)
 		return
 

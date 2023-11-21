@@ -363,15 +363,17 @@
 	if(!metallic)
 		user.visible_message(SPAN_WARNING("You can't weld \the [src]!"))
 		return FALSE
-
-	if(!(welder.remove_fuel(2, user)))
+	if(health == maxhealth)
+		user.visible_message(SPAN_WARNING("[src] doesn't need repairs."))
+		return FALSE
+	if(!welder.remove_fuel(2, user))
 		return FALSE
 
 	user.visible_message(SPAN_NOTICE("[user] begins repairing damage to [src]."),
 	SPAN_NOTICE("You begin repairing the damage to [src]."))
 	playsound(src.loc, 'sound/items/Welder2.ogg', 25, TRUE)
 
-	var/welding_time = skillcheck(user, SKILL_CONSTRUCTION, 2) ? 5 SECONDS : 10 SECONDS
+	var/welding_time = skillcheck(user, SKILL_CONSTRUCTION, SKILL_CONSTRUCTION_ENGI) ? 5 SECONDS : 10 SECONDS
 	if(!do_after(user, welding_time, INTERRUPT_NO_NEEDHAND|BEHAVIOR_IMMOBILE, BUSY_ICON_FRIENDLY, src))
 		return FALSE
 
@@ -379,7 +381,7 @@
 	SPAN_NOTICE("You repair [src]."))
 	user.count_niche_stat(STATISTICS_NICHE_REPAIR_CADES)
 	update_health(-200)
-	playsound(src.loc, 'sound/items/Welder2.ogg', 25, TRUE)
+	playsound(loc, 'sound/items/Welder2.ogg', 25, TRUE)
 	return TRUE
 
 /obj/structure/barricade/verb/count_rotate()
