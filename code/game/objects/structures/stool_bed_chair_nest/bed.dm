@@ -30,7 +30,8 @@
 
 /obj/structure/bed/get_examine_text(mob/user)
 	. = ..()
-	if(buildstacktype)
+	// I wish everyone would just null buildstacktype if they want something to be non-disassemble, but alas
+	if(buildstacktype && !indestructible && buildstackamount)
 		. += SPAN_NOTICE("It looks like it can be disassembled with a [SPAN_HELPFUL("wrench")].")
 
 /obj/structure/bed/initialize_pass_flags(datum/pass_flags_container/PF)

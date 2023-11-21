@@ -109,11 +109,12 @@ GLOBAL_LIST_INIT(airlock_wire_descriptions, list(
 		. += SPAN_WARNING("It looks slightly damaged.")
 	if(masterkey_resist)
 		. += SPAN_INFO("It has been reinforced against breaching attempts.")
+
 	var/engi_examine_message = ""
 	if(damage > 0)
 		engi_examine_message += "The damage of [src] looks [SPAN_HELPFUL("weldable")]. "
 	else if(density && !not_weldable)
-		engi_examine_message += "You can [SPAN_HELPFUL("weld")] [src] [welded ? "open" : "shut"]. "
+		engi_examine_message += "You can [SPAN_HELPFUL("weld")] it [welded ? "open" : "shut"]. "
 	if(!no_panel)
 		if(!panel_open)
 			engi_examine_message += "The maintenance panel's cover is [SPAN_HELPFUL("screwed")] in place."

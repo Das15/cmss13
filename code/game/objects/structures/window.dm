@@ -61,11 +61,11 @@
 	var/engi_examine_message = ""
 	switch(state)
 		if(STATE_STANDARD)
-			engi_examine_message += "It is [SPAN_HELPFUL("screwed")] to the frame. "
+			engi_examine_message += "It is [SPAN_HELPFUL("screwed")] to the [reinf ? "frame" : "floor"]. "
 		if(STATE_UNFASTENED)
 			engi_examine_message += "You can [SPAN_HELPFUL("pry")] [src] out of the frame. "
 			engi_examine_message += "Its [SPAN_HELPFUL("screws")] can be fastened to the frame. "
-		if(STATE_FRAME_PRIED || !reinf)
+		if(STATE_FRAME_PRIED)
 			if(static_frame)
 				engi_examine_message += "You can remove it with a [SPAN_HELPFUL("screwdriver")]. "
 			else

@@ -42,16 +42,21 @@
 
 /obj/structure/barricade/handrail/get_examine_text(mob/user)
 	. = ..()
+
+	var/engi_examine_message = ""
 	switch(build_state)
 		if(BARRICADE_BSTATE_SECURED)
-			. += SPAN_INFO("The [barricade_type] is safely secured to the ground.")
+			engi_examine_message += "The [barricade_type] is secured to the ground with [SPAN_HELPFUL("bolts")]. "
+			engi_examine_message += "You can reinforce it with a [SPAN_HELPFUL("metal sheet")]."
 		if(BARRICADE_BSTATE_UNSECURED)
-			. += SPAN_INFO("The bolts nailing it to the ground has been unsecured.")
+			engi_examine_message += "The [SPAN_HELPFUL("bolts")] nailing it to the ground have been unsecured. "
+			engi_examine_message += "You can disassemble by [SPAN_HELPFUL("unscrewing")] the joints."
 		if(BARRICADE_BSTATE_FORTIFIED)
 			if(reinforced)
-				. += SPAN_INFO("The [barricade_type] has been reinforced with metal.")
+				engi_examine_message += "The [barricade_type] has been reinforced with metal. You can [SPAN_HELPFUL("pry")] the metal out."
 			else
-				. += SPAN_INFO("Metal has been laid across the [barricade_type]. Weld it to secure it.")
+				engi_examine_message += "Metal has been laid across the [barricade_type]. [SPAN_HELPFUL("Weld")] it to secure it."
+	. += engi_examine_message
 
 /obj/structure/barricade/handrail/proc/reinforce()
 	if(reinforced)
