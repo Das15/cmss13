@@ -120,13 +120,13 @@
 	var/dir_sum = 0
 	for(var/direction in CARDINAL_ALL_DIRS)
 		var/skip_sum = 0
-		for(var/obj/structure/window/W in src.loc)
-			if(W.dir == direction) //So smooth tables don't go smooth through windows
+		for(var/obj/structure/window/attacking_item in src.loc)
+			if(attacking_item.dir == direction) //So smooth tables don't go smooth through windows
 				skip_sum = 1
 				continue
 		var/inv_direction = turn(dir, 180) //inverse direction
-		for(var/obj/structure/window/W in get_step(src, direction))
-			if(W.dir == inv_direction) //So smooth tables don't go smooth through windows when the window is on the other table's tile
+		for(var/obj/structure/window/attacking_item in get_step(src, direction))
+			if(attacking_item.dir == inv_direction) //So smooth tables don't go smooth through windows when the window is on the other table's tile
 				skip_sum = 1
 				continue
 		if(!skip_sum) //there is no window between the two tiles in this direction
@@ -264,16 +264,16 @@
 	if(I.loc != loc)
 		step(I, get_dir(I, src))
 
-/obj/structure/surface/table/attackby(obj/item/W, mob/user, click_data)
-	if(!W) return
+/obj/structure/surface/table/attackby(obj/item/attacking_item, mob/user, click_data)
+	if(!attacking_item) return
 
-	if (W.has_special_table_placement)
-		W.set_to_table(src)
+	if (attacking_item.has_special_table_placement)
+		attacking_item.set_to_table(src)
 		return
 
-	if(istype(W, /obj/item/grab) && get_dist(src, user) <= 1)
+	if(istype(attacking_item, /obj/item/grab) && get_dist(src, user) <= 1)
 		if(isxeno(user)) return
-		var/obj/item/grab/G = W
+		var/obj/item/grab/G = attacking_item
 		if(istype(G.grabbed_thing, /mob/living))
 			var/mob/living/M = G.grabbed_thing
 			if(user.a_intent == INTENT_HARM)
@@ -293,7 +293,7 @@
 				SPAN_DANGER("You throw [M] on [src]."))
 		return
 
-	if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH) && !(user.a_intent == INTENT_HELP))
+	if(HAS_TRAIT(attacking_item, TRAIT_TOOL_WRENCH) && !(user.a_intent == INTENT_HELP))
 		user.visible_message(SPAN_NOTICE("[user] starts disassembling [src]."),
 		SPAN_NOTICE("You start disassembling [src]."))
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 25, 1)
@@ -303,10 +303,10 @@
 			deconstruct(TRUE)
 		return
 
-	if((W.flags_item & ITEM_ABSTRACT) || isrobot(user))
+	if((attacking_item.flags_item & ITEM_ABSTRACT) || isrobot(user))
 		return
 
-	if(istype(W, /obj/item/weapon/wristblades))
+	if(istype(attacking_item, /obj/item/weapon/wristblades))
 		if(rand(0, 2) == 0)
 			playsound(src.loc, 'sound/weapons/wristblades_hit.ogg', 25, 1)
 			user.visible_message(SPAN_DANGER("[user] slices [src] apart!"),
@@ -316,8 +316,8 @@
 			to_chat(user, SPAN_WARNING("You slice at the table, but only claw it up a little."))
 		return
 
-	if(istype(W, /obj/item/explosive/grenade))
-		var/obj/item/explosive/grenade/detonating_grenade = W
+	if(istype(attacking_item, /obj/item/explosive/grenade))
+		var/obj/item/explosive/grenade/detonating_grenade = attacking_item
 		if(detonating_grenade.active)
 			to_chat(user, SPAN_WARNING("It's too late for that!"))
 			return
@@ -543,13 +543,13 @@
 /obj/structure/surface/table/reinforced/flip(direction)
 	return 0 //No, just no. It's a full desk, you can't flip that
 
-/obj/structure/surface/table/reinforced/attackby(obj/item/W as obj, mob/user as mob)
-	if (iswelder(W))
-		if(!HAS_TRAIT(W, TRAIT_TOOL_BLOWTORCH))
+/obj/structure/surface/table/reinforced/attackby(obj/item/attacking_item as obj, mob/user as mob)
+	if (iswelder(attacking_item))
+		if(!HAS_TRAIT(attacking_item, TRAIT_TOOL_BLOWTORCH))
 			to_chat(user, SPAN_WARNING("You need a stronger blowtorch!"))
 			return
-		var/obj/item/tool/weldingtool/WT = W
-		if(!WT.remove_fuel(0, user)) // Somehow it also checks if welder is turned on...
+		var/obj/item/tool/weldingtool/welder = attacking_item
+		if(!welder.remove_fuel(0, user)) // Somehow it also checks if welder is turned on...
 			return
 		if(status == RTABLE_NORMAL)
 			user.visible_message(SPAN_NOTICE("[user] starts weakening [src]."),
@@ -557,7 +557,7 @@
 			playsound(src.loc, 'sound/items/Welder.ogg', 25, 1)
 			if (!do_after(user, 5 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 				return
-			if(!src || !WT.isOn()) // I have no idea if this check is even necessary
+			if(!src || !welder.isOn()) // I have no idea if this check is even necessary
 				return
 			user.visible_message(SPAN_NOTICE("[user] weakens [src]."),
 			SPAN_NOTICE("You weaken [src]"))
@@ -565,10 +565,10 @@
 		else
 			user.visible_message(SPAN_NOTICE("[user] starts welding [src] back together."),
 			SPAN_NOTICE("You start welding [src] back together."))
-			playsound(src.loc, 'sound/items/Welder.ogg', 25, 1)
+			playsound(loc, 'sound/items/Welder.ogg', 25, 1)
 			if(!do_after(user, 5 SECONDS * user.get_skill_duration_multiplier(SKILL_CONSTRUCTION), INTERRUPT_ALL|BEHAVIOR_IMMOBILE, BUSY_ICON_BUILD))
 				return
-			if(!src || !WT.isOn())
+			if(!src || !welder.isOn())
 				return
 			user.visible_message(SPAN_NOTICE("[user] welds [src] back together."),
 			SPAN_NOTICE("You weld [src] back together."))
@@ -576,7 +576,7 @@
 			return
 		return
 
-	if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH) && !(user.a_intent == INTENT_HELP) && status == RTABLE_NORMAL)
+	if(HAS_TRAIT(attacking_item, TRAIT_TOOL_WRENCH) && !(user.a_intent == INTENT_HELP) && status == RTABLE_NORMAL)
 		return
 
 	..()
@@ -684,12 +684,12 @@
 	if(I.loc != loc)
 		step(I, get_dir(I, src))
 
-/obj/structure/surface/rack/attackby(obj/item/W, mob/user, click_data)
-	if(HAS_TRAIT(W, TRAIT_TOOL_WRENCH) && !(user.a_intent == INTENT_HELP))
+/obj/structure/surface/rack/attackby(obj/item/attacking_item, mob/user, click_data)
+	if(HAS_TRAIT(attacking_item, TRAIT_TOOL_WRENCH) && !(user.a_intent == INTENT_HELP))
 		deconstruct(TRUE)
 		playsound(src.loc, 'sound/items/Ratchet.ogg', 25, 1)
 		return
-	if((W.flags_item & ITEM_ABSTRACT) || isrobot(user))
+	if((attacking_item.flags_item & ITEM_ABSTRACT) || isrobot(user))
 		return
 	..()
 
