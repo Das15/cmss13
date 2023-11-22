@@ -351,6 +351,7 @@ GLOBAL_LIST_EMPTY(vending_products)
 		stat |= WORKING
 	update_icon()
 
+// This is almost the same as vending get_repair_move_text...
 /obj/structure/machinery/cm_vending/get_repair_move_text(include_name = TRUE)
 	if(!stat)
 		return
@@ -358,16 +359,16 @@ GLOBAL_LIST_EMPTY(vending_products)
 	var/possessive = include_name ? "[src]'s" : "Its"
 	var/nominative = include_name ? "[src]" : "It"
 
-	if(stat & MAINT)
-		return "[possessive] broken panel still needs to be <b>unscrewed</b> and removed."
+	if(stat & MAINT) // But for some reason the checked flag is different...
+		return "[possessive] broken panel still needs to be [SPAN_HELPFUL("unscrewed")] and removed."
 	else if(stat & REPAIR_STEP_ONE)
-		return "[possessive] broken wires still need to be <b>cut</b> and removed from the vendor."
+		return "[possessive] broken wires still need to be [SPAN_HELPFUL("cut")] and removed from the vendor."
 	else if(stat & REPAIR_STEP_TWO)
-		return "[nominative] needs to have <b>new wiring</b> installed."
+		return "[nominative] needs to have [SPAN_HELPFUL("new wiring")] installed."
 	else if(stat & REPAIR_STEP_THREE)
-		return "[nominative] needs to have a <b>metal</b> panel installed."
+		return "[nominative] needs to have a [SPAN_HELPFUL("metal")] panel installed."
 	else if(stat & REPAIR_STEP_FOUR)
-		return "[possessive] new panel needs to be <b>fastened</b> to it."
+		return "[possessive] new panel needs to be [SPAN_HELPFUL("fastened")] to it."
 	else
 		return "[nominative] is being affected by some power-related issue."
 

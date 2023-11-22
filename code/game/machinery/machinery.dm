@@ -172,7 +172,7 @@ Class Procs:
 	. += "It does not appear to be working."
 	var/msg = get_repair_move_text(FALSE)
 	if(msg && skillcheck(user, SKILL_ENGINEER, SKILL_ENGINEER_ENGI))
-		. += SPAN_WARNING("[msg]")
+		. += SPAN_NOTICE("[msg]")
 
 /obj/structure/machinery/emp_act(severity)
 	. = ..()
