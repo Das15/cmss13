@@ -59,7 +59,7 @@
 	if(!ishuman(usr))
 		return
 
-	if(usr.lying)
+	if(usr.is_mob_incapacitated())
 		return
 
 	if(over_object == usr && Adjacent(usr))
