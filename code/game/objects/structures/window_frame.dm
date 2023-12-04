@@ -54,6 +54,11 @@
 		if(weed_found)
 			new /obj/effect/alien/weeds/weedwall/frame(loc, weed_found) //after smoothing to get the correct junction value
 
+/obj/structure/window_frame/get_examine_text(mob/user)
+	. = ..()
+
+	if(buildstacktype)
+		. += SPAN_NOTICE("It can be disassembled with a [SPAN_HELPFUL("wrench")].")
 
 /obj/structure/window_frame/proc/update_nearby_icons()
 	relativewall_neighbours()
